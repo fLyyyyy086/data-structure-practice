@@ -1,0 +1,119 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Node {
+    int id;                 // 人员编号
+    int password;            // 该人员的密码
+    struct Node *next;       // 指向下一个人
+} Node;
+
+int main(void)
+{
+    int N, M;
+    int i, alive, step, move;
+
+    printf("请输入人数 N：");
+    if (scanf("%d", &N) != 1 || N <= 0) {
+        printf("输入错误！\n");
+        return 1;
+    }
+
+    printf("请输入初始报数值 M：");
+    if (scanf("%d", &M) != 1 || M <= 0) {
+        printf("输入错误！\n");
+        return 1;
+    }
+
+    Node *head = NULL;
+    Node *tail = NULL;
+
+    // 创建所有结点，先组成普通单链表
+    printf("请依次输入每个人的密码：\n");
+
+    for (i = 1; i <= N; i++) {
+        int pwd;
+
+        if (scanf("%d", &pwd) != 1 || pwd <= 0) {
+            printf("密码输入错误！\n");
+
+            while (head != NULL) {
+                Node *temp = head;
+                head = head->next;
+                free(temp);
+            }
+
+            return 1;
+        }
+
+        Node *p = (Node *)malloc(sizeof(Node));
+
+        if (p == NULL) {
+            printf("内存分配失败！\n");
+
+            while (head != NULL) {
+                Node *temp = head;
+                head = head->next;
+                free(temp);
+            }
+
+            return 1;
+        }
+
+        p->id = i;
+        p->password = pwd;
+        p->next = NULL;
+
+        if (head == NULL) {
+            head = p;
+        } else {
+            tail->next = p;
+        }
+
+        tail = p;
+    }
+
+    // 首尾相连，形成循环链表
+    tail->next = head;
+
+    // current：当前报数的人
+    // prev：当前结点的前一个结点
+    Node *current = head;
+    Node *prev = tail;
+
+    alive = N;
+    step = M;
+
+    printf("淘汰顺序：");
+
+    while (alive > 1) {
+        // 当前人算第1个，所以只需移动 step-1 次
+        // 取模可以减少不必要的循环，提高效率
+        move = (step - 1) % alive;
+
+        for (i = 0; i < move; i++) {
+            prev = current;
+            current = current->next;
+        }
+
+        // 输出被淘汰者的编号
+        printf("%d ", current->id);
+
+        // 被淘汰者的密码决定下一轮的报数值
+        step = current->password;
+
+        // 删除当前结点
+        Node *temp = current;
+        prev->next = current->next;
+        current = current->next;
+
+        free(temp);
+        alive--;
+    }
+
+    printf("\n最后的赢家：%d\n", current->id);
+
+    free(current);
+
+    return 0;
+}
